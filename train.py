@@ -7,6 +7,8 @@ import torch.utils.tensorboard as tb
 from ema import EMAHelper
 import torchvision
 import torch.nn as nn
+import time
+
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 class NoiseModel(nn.Module):
     def __init__(self):
@@ -62,6 +64,8 @@ def train(args, config, optimizer, optimizer_scale,
         print('precomputation finished')
     print('Start Training')
     for epoch in range(epochs):
+        overfitting_time = 0
+        diffusion_time = 0
         avg_loss = 0
         count = 0
         optimizer.zero_grad()
@@ -72,6 +76,7 @@ def train(args, config, optimizer, optimizer_scale,
             batch['input'] = batch['input'].to(device)
             batch['output'] = batch['output'].to(device)
             # Overfitting encapsulation #
+            start_overfitting = time.time()
             if args.precompute_all:
                 weight,hfirst,outin = ws[idx].to(device),hs[idx],outs[idx].to(device)
             else:
@@ -84,6 +89,9 @@ def train(args, config, optimizer, optimizer_scale,
                 lr=lr_overfitting,
                 verbose=False
                 )
+            overfitting_time += time.time() - start_overfitting
+            # Diffusion encapsulation #
+            start_diffusion = time.time()
             diff_weight = weight - dmodel_original_weight #calculate optimal weight difference from baseline
             t = torch.randint(low=0, high=diffusion_num_steps, size=(1,)
                     ).to(device) #Sample random timestamp
@@ -105,10 +113,12 @@ def train(args, config, optimizer, optimizer_scale,
             lossdiff = (loss_fn(estimated_error , error))/ grad_accum  # diffusion loss
             difflosslogger += lossdiff.item()
             tb_logger.add_scalar("loss_scale", lscale.item(), global_step=step)
+            avg_loss += lossdiff.item()
             step += 1
             count += 1
             lossdiff.backward()
             lscale.backward()
+            diffusion_time += time.time() - start_diffusion
             ############# Gradient accumulation for diffusion steps #################
             if ((idx + 1) % grad_accum == 0) or (idx + 1 == len(train_loader)):
                 
@@ -126,6 +136,7 @@ def train(args, config, optimizer, optimizer_scale,
                         )
             optimizer_scale.step()
             optimizer_scale.zero_grad()
+        print('Epoch: {} | Overfitting time: {} | Diffusion time: {} | Avg loss: {}'.format(epoch,overfitting_time,diffusion_time,avg_loss/count))
         if ((epoch + 1) % n_checkpoint == 0) or (epoch + 1 == epochs):
             print(f'epoch {epoch+1} save checkpoints: model_checkpoint_epoch{epoch}_step{step}_data{args.datatype}, scale_model_checkpoint_epoch{epoch}_loss{step}_data{args.datatype}')
             torch.save(ema_helper.state_dict(),checkpoint_path+f'model_checkpoint_epoch{epoch}_step{step}_data{args.datatype}.pt')
