@@ -59,7 +59,7 @@ def train(args, config, optimizer, optimizer_scale,
             )
             ws.append(deepcopy(weight.detach().cpu()))
             hs.append(deepcopy(hfirst))
-            outs.append(deepcopy(outin.detach().cpu()))
+            outs.append(deepcopy(outin.detach().cpu()))        
 
         print('precomputation finished')
     print('Start Training')
@@ -73,13 +73,16 @@ def train(args, config, optimizer, optimizer_scale,
         optimizer_scale.zero_grad()
         for idx, batch in enumerate(train_loader):
             optimizer_scale.zero_grad()
-            batch['input'] = batch['input'].to(device)
-            batch['output'] = batch['output'].to(device)
+            # batch['input'] = batch['input'].to(device)
+            # batch['output'] = batch['output'].to(device)
             # Overfitting encapsulation #
             start_overfitting = time.time()
             if args.precompute_all:
                 weight,hfirst,outin = ws[idx].to(device),hs[idx],outs[idx].to(device)
             else:
+                # print warning if overfitting is not precomputed
+                print('Warning: overfitting is not precomputed, this will slow down the training')
+                exit()
                 weight,hfirst,outin= overfitting_batch_wrapper(
                 datatype=args.datatype,
                 bmodel=model,weight_name=weight_name,

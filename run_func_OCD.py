@@ -77,6 +77,10 @@ module_path = args.backbone_path #path to desired pretrained model
 tb_path = args.tensorboard_path # path to tensorboard log
 tb_logger = tb.SummaryWriter(log_dir=tb_path)
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
+if device != 'cuda':
+    print('ERROR: GPU not available')
+    exit()
+    
 lr = args.learning_rate # learning rate for the diffusion model & scale estimation model
 
 diffusion_model = Model(config=config).cuda()
@@ -92,9 +96,8 @@ if config.training.loss == 'mse':
     opt_error_loss = torch.nn.MSELoss()
 elif config.training.loss == 'ce':
     opt_error_loss = torch.nn.CrossEntropyLoss()
-elif config.training.loss == 'own':
-    # Change according to desired objective
-    pass
+elif config.training.loss == 'none':
+    opt_error_loss = None
 optimizer = torch.optim.Adam(diffusion_model.parameters(), lr=lr)
 optimizer_scale= torch.optim.Adam(scale_model.parameters(), lr=5*lr)
 ema_helper = EMAHelper(mu=0.9999)

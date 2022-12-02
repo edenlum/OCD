@@ -9,6 +9,12 @@ import Lenet5
 from torch.utils.data import DataLoader
 from torchvision.transforms import ToTensor
 from copy import deepcopy
+
+from unisiam_utils.model.unisiam import UniSiam
+from unisiam_utils.model.resnet import resnet10, resnet18, resnet34, resnet50
+from unisiam_utils.dataset.miniImageNet import miniImageNet
+from unisiam_utils.transform.build_transform import build_transform
+
 def wrapper_dataset(config, args, device):
     if args.datatype == 'tinynerf':
         
@@ -78,6 +84,28 @@ def wrapper_dataset(config, args, device):
                 "\data\mnist", train=False, download=True, transform=ToTensor())
         train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True)
         test_loader = DataLoader(test_dataset, batch_size=1)
+        train_ds, test_ds = [],[]
+        for idx, data in enumerate(train_loader):
+            train_x, train_label = data[0], data[1]
+            train_x = train_x[:,0,:,:].unsqueeze(1)
+            batch = {'input':train_x,'output':train_label}
+            train_ds.append(deepcopy(batch))
+        for idx, data in enumerate(test_loader):
+            train_x, train_label = data[0], data[1]
+            train_x = train_x[:,0,:,:].unsqueeze(1)
+            batch = {'input':train_x,'output':train_label}
+            test_ds.append(deepcopy(batch))
+    elif args.datatype == 'unisiam':
+        model = UniSiam(encoder=resnet18())
+        train_transform = build_transform()
+        train_dataset = miniImageNet(
+            data_path="unisiam_utils/miniimagenet", 
+            split_path="unisiam_utils/split",
+            partition='train',
+            transform=train_transform)
+        test_dataset = None # add later
+        train_loader = DataLoader(train_dataset, batch_size=2, shuffle=True, pin_memory=True)
+        test_loader = None # add later
         train_ds, test_ds = [],[]
         for idx, data in enumerate(train_loader):
             train_x, train_label = data[0], data[1]

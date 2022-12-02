@@ -101,6 +101,15 @@ batch=None, loss_fn=None,n_iteration=10,lr=0.5e-4,verbose=False):
             lr=lr,
             verbose=verbose
             )
+    elif datatype == 'unisiam':
+        weight,hfirst,outin= overfitting_batch_unisiam(
+            bmodel=bmodel,weight_name=weight_name,
+            bias_name=bias_name,
+            batch=batch,
+            n_iteration=n_iteration,
+            lr=lr,
+            verbose=verbose
+            )
     else:
         weight,hfirst,outin= overfitting_batch(
             bmodel=bmodel,weight_name=weight_name,
@@ -132,6 +141,29 @@ batch=None, loss_fn=None,n_iteration=10,lr=0.5e-4,verbose=False):
         loss.backward()
         opt.step()
     weight = base_model.get_parameter(weight_name+'.weight').detach()
+    return weight,hfirst,out
+
+def overfitting_batch_unisiam(bmodel=None,weight_name='',bias_name='',
+batch=None, n_iteration=10,lr=0.5e-4,verbose=False):
+    base_model = copy.deepcopy(bmodel)
+    param_weight = base_model.get_parameter(weight_name+'.weight')
+    opt = torch.optim.Adam([
+                {'params': param_weight},
+            ], lr=lr)
+    
+    for epoch in range(n_iteration):
+        opt.zero_grad()
+        embedding, loss, loss_pos, loss_neg, std, h = base_model(batch['input'].float())
+        if epoch == 0:
+            hx,hy = h
+            hfirst = copy.deepcopy((hx.detach(),hy.detach()))
+            out = copy.deepcopy(embedding.detach())
+        loss.backward()
+        opt.step()
+    weight = base_model.get_parameter(weight_name+'.weight').detach()
+
+    del batch['input']
+    torch.cuda.empty_cache()
     return weight,hfirst,out
 
 def check_ps_nerf(named_parameter='',bmodel=None,w=0,
