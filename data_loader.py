@@ -99,7 +99,7 @@ def wrapper_dataset(config, args, device):
         model = UniSiam(encoder=resnet18())
         train_transform = build_transform()
         train_dataset = miniImageNet(
-            data_path="unisiam_utils/miniimagenet", 
+            data_path=args.data_train_path, 
             split_path="unisiam_utils/split",
             partition='train',
             transform=train_transform)
