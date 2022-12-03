@@ -44,32 +44,35 @@ def train(args, config, optimizer, optimizer_scale,
     if args.precompute_all == 1:
         print('precomputation of overfitting to save time starts')
         ws,hs,outs = [],[],[]
-        last_s = 0
-        objects = []
-        last_objects = []
+        # last_s = 0
+        # objects = []
+        # last_objects = []
         for idx, batch in enumerate(train_loader):
             print(f"idx: {idx+1}")
-            s = 0
-            for obj in gc.get_objects():
-                try:
-                    if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-                        objects.append(f"{obj.nelement() if len(obj.size()) > 0 else 0} {type(obj)} {obj.size()} {obj.is_cuda}")
-                        s += obj.nelement()
-                except:
-                    pass
-            print(s)
-            print(last_s - s)
-            last_s = s
-            for obj in objects:
-                if obj not in last_objects:
-                    print(obj)
-            print(f"length: {len(objects)}")
-            if idx == 10:
-                exit()
-            last_objects = deepcopy(objects)
+            # s = 0
+            # for obj in gc.get_objects():
+            #     try:
+            #         if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+            #             objects.append(f"{obj.nelement() if len(obj.size()) > 0 else 0} {type(obj)} {obj.size()} {obj.is_cuda}")
+            #             s += obj.nelement()
+            #     except:
+            #         pass
+            # print(s)
+            # print(last_s - s)
+            # last_s = s
+            # for obj in objects:
+                # if obj not in last_objects:
+                    # print(obj)
+            # print(f"length: {len(objects)}")
+            # if idx == 10:
+            #     exit()
+            # last_objects = deepcopy(objects)
+            print(f"1. {len(gc.get_objects())}")
             optimizer_scale.zero_grad()
             batch['input'] = batch['input'].to(device)
             batch['output'] = batch['output'].to(device)
+            print(f"2. {len(gc.get_objects())}")
+            print(f"3. {len(gc.get_objects())}")
             # Overfitting encapsulation #
             weight,hfirst,outin= overfitting_batch_wrapper(
             datatype=args.datatype,
@@ -80,9 +83,15 @@ def train(args, config, optimizer, optimizer_scale,
             lr=lr_overfitting,
             verbose=False
             )
+            print(f"4. {len(gc.get_objects())}")
             ws.append(deepcopy(weight.detach().cpu()))
             hs.append(deepcopy(hfirst))
             outs.append(deepcopy(outin.detach().cpu()))
+            del weight
+            del hfirst
+            del outin
+            torch.cuda.empty_cache()
+            print(f"5. {len(gc.get_objects())}")
 
         print('precomputation finished')
     print('Start Training')
