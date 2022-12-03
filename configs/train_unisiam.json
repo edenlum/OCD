@@ -6,7 +6,7 @@
         "loss": "none"
     },
     "model": {
-        "weight_name": "conv1",
+        "weight_name": "encoder.conv1",
         "name":"unisiam"
     },
     "checkpoint": {
