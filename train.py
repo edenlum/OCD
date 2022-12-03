@@ -44,7 +44,7 @@ def train(args, config, optimizer, optimizer_scale,
         print('precomputation of overfitting to save time starts')
         ws,hs,outs = [],[],[]
         for idx, batch in enumerate(train_loader):
-            print(f"idx: {idx+1}/{len(train_loader)}")
+            print(f"idx: {idx+1}")
             optimizer_scale.zero_grad()
             batch['input'] = batch['input'].to(device)
             batch['output'] = batch['output'].to(device)
@@ -59,7 +59,7 @@ def train(args, config, optimizer, optimizer_scale,
             verbose=False
             )
             ws.append(deepcopy(weight.detach().cpu()))
-            hs.append(deepcopy(hfirst))
+            hs.append(deepcopy(hfirst.detach().cpu()))
             outs.append(deepcopy(outin.detach().cpu()))        
 
         print('precomputation finished')
