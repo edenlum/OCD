@@ -59,7 +59,7 @@ def train(args, config, optimizer, optimizer_scale,
             verbose=False
             )
             ws.append(deepcopy(weight.detach().cpu()))
-            hs.append(deepcopy(hfirst.detach().cpu()))
+            hs.append(deepcopy(hfirst))
             outs.append(deepcopy(outin.detach().cpu()))        
 
         print('precomputation finished')
