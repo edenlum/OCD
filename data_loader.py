@@ -106,17 +106,19 @@ def wrapper_dataset(config, args, device):
         test_dataset = [] # add later
         train_loader = DataLoader(train_dataset, batch_size=2, shuffle=True, pin_memory=False)
         test_loader = [] # add later
-        train_ds, test_ds = [],[]
-        for idx, data in enumerate(train_loader):
-            print(f"idx: {idx}/{len(train_loader)}")
-            train_x, train_label = data[0], data[1]
-            train_x = torch.cat([train_x[0], train_x[1]], dim=0)
-            batch = {'input':train_x,'output':train_label}
-            train_ds.append(deepcopy(batch))
-        for idx, data in enumerate(test_loader):
-            train_x, train_label = data[0], data[1]
-            batch = {'input':train_x,'output':train_label}
-            test_ds.append(deepcopy(batch))
+        # train_ds, test_ds = [],[]
+        # for idx, data in enumerate(train_loader):
+        #     print(f"idx: {idx}/{len(train_loader)}")
+        #     train_x, train_label = data[0], data[1]
+        #     train_x = torch.cat([train_x[0], train_x[1]], dim=0)
+        #     batch = {'input':train_x,'output':train_label}
+        #     train_ds.append(deepcopy(batch))
+        # for idx, data in enumerate(test_loader):
+        #     train_x, train_label = data[0], data[1]
+        #     batch = {'input':train_x,'output':train_label}
+        #     test_ds.append(deepcopy(batch))
+        train_ds = ({'input': torch.cat([data[0][0], data[0][1]], dim=0), 'output': data[1]} for data in train_loader)
+        test_ds = ({'input': torch.cat([data[0][0], data[0][1]], dim=0), 'output': data[1]} for data in test_loader)
     else:
         "implement on your own"
         pass
