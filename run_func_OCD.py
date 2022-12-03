@@ -106,6 +106,7 @@ ema_helper.register(diffusion_model)
 ################################################# Check if weight is OK ##########################
 weight_name = config.model.weight_name
 dmodel_original_weight = deepcopy(model.get_parameter(weight_name+'.weight'))
+dmodel_original_weight = dmodel_original_weight.reshape(dmodel_original_weight.shape[0],-1)
 mat_shape = dmodel_original_weight.shape
 assert len(mat_shape) == 2, "Weight to overfit should be a matrix !"
 padding = []
@@ -114,6 +115,12 @@ for s in mat_shape:
         padding.append([0,0])
     elif s<128:
         rem = 128-s
+        if (rem % 2) == 0:
+            padding.append([rem//2,rem//2])
+        else:
+            padding.append([rem//2 + 1,rem//2])
+    elif s > 128:
+        rem = 256-s
         if (rem % 2) == 0:
             padding.append([rem//2,rem//2])
         else:

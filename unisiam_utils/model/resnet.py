@@ -167,7 +167,6 @@ class ResNet(nn.Module):
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.out_dim = 512 * block.expansion
         self.fc = nn.Linear(512 * block.expansion, 512)
-        self.bn_out = norm_layer(512)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -213,7 +212,9 @@ class ResNet(nn.Module):
 
     def _forward_impl(self, x: Tensor) -> Tensor:
         # See note [TorchScript super()]
+        layer_input = deepcopy(x.detach())
         x = self.conv1(x)
+        layer_output = deepcopy(x.detach())
         x = self.bn1(x)
         x = self.relu(x)
         x = self.maxpool(x)
@@ -225,16 +226,10 @@ class ResNet(nn.Module):
 
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
-        fc_in = deepcopy(x.detach())
         if self.fc is not None:
             x = self.fc(x)
-            fc_out = deepcopy(x.detach())
-        else:
-            print("Warning: No fc layer in the model")
-            exit()
-        x = self.bn_out(x)
         
-        return x, (fc_out, fc_in)
+        return x, (layer_input, layer_output)
 
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
