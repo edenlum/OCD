@@ -109,12 +109,11 @@ def wrapper_dataset(config, args, device):
         train_ds, test_ds = [],[]
         for idx, data in enumerate(train_loader):
             train_x, train_label = data[0], data[1]
-            train_x = train_x[:,0,:,:].unsqueeze(1)
+            train_x = torch.cat([train_x[0], train_x[1]], dim=0).cuda(non_blocking=True)
             batch = {'input':train_x,'output':train_label}
             train_ds.append(deepcopy(batch))
         for idx, data in enumerate(test_loader):
             train_x, train_label = data[0], data[1]
-            train_x = train_x[:,0,:,:].unsqueeze(1)
             batch = {'input':train_x,'output':train_label}
             test_ds.append(deepcopy(batch))
     else:
