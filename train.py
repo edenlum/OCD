@@ -43,8 +43,29 @@ def train(args, config, optimizer, optimizer_scale,
     if args.precompute_all == 1:
         print('precomputation of overfitting to save time starts')
         ws,hs,outs = [],[],[]
+        last_s = 0
+        objects = []
+        last_objects = []
         for idx, batch in enumerate(train_loader):
             print(f"idx: {idx+1}")
+            s = 0
+            for obj in gc.get_objects():
+                try:
+                    if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+                        objects.append(f"{obj.nelement() if len(obj.size()) > 0 else 0} {type(obj)} {obj.size()} {obj.is_cuda}")
+                        s += obj.nelement()
+                except:
+                    pass
+            print(s)
+            print(last_s - s)
+            last_s = s
+            for obj in objects:
+                if obj not in last_objects:
+                    print(obj)
+            print(f"length: {len(objects)}")
+            if idx == 10:
+                exit()
+            last_objects = deepcopy(objects)
             optimizer_scale.zero_grad()
             batch['input'] = batch['input'].to(device)
             batch['output'] = batch['output'].to(device)
@@ -60,7 +81,7 @@ def train(args, config, optimizer, optimizer_scale,
             )
             ws.append(deepcopy(weight.detach().cpu()))
             hs.append(deepcopy(hfirst))
-            outs.append(deepcopy(outin.detach().cpu()))        
+            outs.append(deepcopy(outin.detach().cpu()))
 
         print('precomputation finished')
     print('Start Training')
