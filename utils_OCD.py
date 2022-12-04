@@ -156,7 +156,10 @@ batch=None, n_iteration=10,lr=0.5e-4,verbose=False):
         embedding, loss, loss_pos, loss_neg, std, h = base_model(batch['input'].float())
         if epoch == 0:
             hx,hy = h
+            hx = hx.reshape(hx.shape[0],-1)
+            hy = hy.reshape(hy.shape[0],-1)
             hfirst = copy.deepcopy((hx.detach(),hy.detach()))
+            embedding = embedding.reshape(embedding.shape[0],-1)
             out = copy.deepcopy(embedding.detach())
         loss.backward()
         opt.step()
