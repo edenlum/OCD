@@ -20,9 +20,9 @@
         "nch": 64,
         "out_ch": 1,
         "ch_mult": [1,2,2,4],
-        "dim_in": 128,
-        "dim_lat_out": 1,
-        "dim_output": 1000,
+        "dim_in": 150528,
+        "dim_lat_out": 802816,
+        "dim_output": 512,
         "scale":{
             "ch": 32, 
             "in_dim": 64,
