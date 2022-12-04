@@ -73,12 +73,12 @@ def train(args, config, optimizer, optimizer_scale,
                     # or (hasattr(obj, 'data') and torch.is_tensor(obj.data)) \
                     and obj.is_cuda])
                     
-            print(f"1. {len_cuda_objects()}")
+            # print(f"1. {len_cuda_objects()}")
             optimizer_scale.zero_grad()
             batch['input'] = batch['input'].to(device)
             batch['output'] = batch['output'].to(device)
-            print(f"2. {len_cuda_objects()}")
-            print(f"3. {len_cuda_objects()}")
+            # print(f"2. {len_cuda_objects()}")
+            # print(f"3. {len_cuda_objects()}")
             # Overfitting encapsulation #
             weight,hfirst,outin= overfitting_batch_wrapper(
             datatype=args.datatype,
@@ -89,12 +89,12 @@ def train(args, config, optimizer, optimizer_scale,
             lr=lr_overfitting,
             verbose=False
             )
-            print(f"4. {len_cuda_objects()}")
+            # print(f"4. {len_cuda_objects()}")
             ws.append(deepcopy(weight.detach().cpu()))
             hs.append(deepcopy(hfirst))
             outs.append(deepcopy(outin.detach().cpu()))
             # torch.cuda.empty_cache()
-            print(f"5. {len_cuda_objects()}")
+            # print(f"5. {len_cuda_objects()}")
 
         print('precomputation finished')
     print('Start Training')
