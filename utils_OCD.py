@@ -160,7 +160,7 @@ batch=None, n_iteration=10,lr=0.5e-4,verbose=False):
             out = copy.deepcopy(embedding.detach().cpu())
         loss.backward()
         opt.step()
-    weight = base_model.get_parameter(weight_name+'.weight').detach().cpu()
+    weight = base_model.get_parameter(weight_name+'.weight').detach()
     return weight,hfirst,out
 
 def check_ps_nerf(named_parameter='',bmodel=None,w=0,

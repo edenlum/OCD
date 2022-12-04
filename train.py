@@ -9,6 +9,9 @@ import torchvision
 import torch.nn as nn
 import time
 import gc
+import psutil
+import sys
+
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 class NoiseModel(nn.Module):
@@ -89,12 +92,22 @@ def train(args, config, optimizer, optimizer_scale,
             lr=lr_overfitting,
             verbose=False
             )
+            t = torch.cuda.get_device_properties(0).total_memory
+            r = torch.cuda.memory_reserved(0)
+            a = torch.cuda.memory_allocated(0)
+            f = r-a  # free inside reserved
+            print(t, r, a, f)
+            print(psutil.virtual_memory().free)
+            print(sys.getsizeof(ws)+ sys.getsizeof(hs) + sys.getsizeof(outs))
+            print(sys.getsizeof(weight.detach().cpu()), sys.getsizeof(hfirst), sys.getsizeof(outin))
             # print(f"4. {len_cuda_objects()}")
             ws.append(deepcopy(weight.detach().cpu()))
-            hs.append(deepcopy(hfirst))
+            hs.append(hfirst)
             outs.append(deepcopy(outin.detach().cpu()))
             # torch.cuda.empty_cache()
             # print(f"5. {len_cuda_objects()}")
+            del batch
+            print(f"5. {len(gc.get_objects())}")
 
         print('precomputation finished')
     print('Start Training')
@@ -108,8 +121,8 @@ def train(args, config, optimizer, optimizer_scale,
         optimizer_scale.zero_grad()
         for idx, batch in enumerate(train_loader):
             optimizer_scale.zero_grad()
-            # batch['input'] = batch['input'].to(device)
-            # batch['output'] = batch['output'].to(device)
+            batch['input'] = batch['input'].to(device)
+            batch['output'] = batch['output'].to(device)
             # Overfitting encapsulation #
             start_overfitting = time.time()
             if args.precompute_all:
@@ -117,7 +130,7 @@ def train(args, config, optimizer, optimizer_scale,
             else:
                 # print warning if overfitting is not precomputed
                 print('Warning: overfitting is not precomputed, this will slow down the training')
-                exit()
+                # exit()
                 weight,hfirst,outin= overfitting_batch_wrapper(
                 datatype=args.datatype,
                 bmodel=model,weight_name=weight_name,
@@ -127,9 +140,18 @@ def train(args, config, optimizer, optimizer_scale,
                 lr=lr_overfitting,
                 verbose=False
                 )
+            t = torch.cuda.get_device_properties(0).total_memory
+            r = torch.cuda.memory_reserved(0)
+            a = torch.cuda.memory_allocated(0)
+            f = r-a  # free inside reserved
+            print(t, r, a, f)
+            print(psutil.virtual_memory().free)
+            # print(sys.getsizeof(ws)+ sys.getsizeof(hs) + sys.getsizeof(outs))
+            print(sys.getsizeof(weight.detach().cpu()), sys.getsizeof(hfirst), sys.getsizeof(outin))
             overfitting_time += time.time() - start_overfitting
             # Diffusion encapsulation #
             start_diffusion = time.time()
+            print(weight.shape, dmodel_original_weight.shape)
             diff_weight = weight - dmodel_original_weight #calculate optimal weight difference from baseline
             t = torch.randint(low=0, high=diffusion_num_steps, size=(1,)
                     ).to(device) #Sample random timestamp
