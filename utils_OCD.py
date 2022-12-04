@@ -161,7 +161,7 @@ batch=None, n_iteration=10,lr=0.5e-4,verbose=False):
         loss.backward()
         opt.step()
     weight = base_model.get_parameter(weight_name+'.weight').detach()
-    weight = weight.rehape(weight.shape[0],-1) # reshape to 2d
+    weight = weight.reshape(weight.shape[0],-1) # reshape to 2d
     return weight,hfirst,out
 
 def check_ps_nerf(named_parameter='',bmodel=None,w=0,
