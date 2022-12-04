@@ -156,8 +156,8 @@ batch=None, n_iteration=10,lr=0.5e-4,verbose=False):
         embedding, loss, loss_pos, loss_neg, std, h = base_model(batch['input'].float())
         if epoch == 0:
             hx,hy = h
-            hfirst = copy.deepcopy((hx.detach().cpu(),hy.detach().cpu()))
-            out = copy.deepcopy(embedding.detach().cpu())
+            hfirst = copy.deepcopy((hx.detach(),hy.detach()))
+            out = copy.deepcopy(embedding.detach())
         loss.backward()
         opt.step()
     weight = base_model.get_parameter(weight_name+'.weight').detach()
