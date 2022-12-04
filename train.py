@@ -93,10 +93,7 @@ def train(args, config, optimizer, optimizer_scale,
             ws.append(deepcopy(weight.detach().cpu()))
             hs.append(deepcopy(hfirst))
             outs.append(deepcopy(outin.detach().cpu()))
-            del weight
-            del hfirst
-            del outin
-            torch.cuda.empty_cache()
+            # torch.cuda.empty_cache()
             print(f"5. {len_cuda_objects()}")
 
         print('precomputation finished')
