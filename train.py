@@ -44,6 +44,7 @@ def train(args, config, optimizer, optimizer_scale,
     n_overfitting = config.overfitting.n_overfitting
     step = 0
     dmodel_original_weight = deepcopy(model.get_parameter(weight_name+'.weight'))
+    dmodel_original_weight = dmodel_original_weight.reshape(mat_shape)
     if args.precompute_all == 1:
         print('precomputation of overfitting to save time starts')
         ws,hs,outs = [],[],[]
