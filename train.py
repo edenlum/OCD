@@ -69,9 +69,10 @@ def train(args, config, optimizer, optimizer_scale,
             # last_objects = deepcopy(objects)
             def len_cuda_objects(): 
                 return len([obj for obj in gc.get_objects() \
-                     if torch.is_tensor(obj) or (hasattr(obj, 'data') \
-                    and torch.is_tensor(obj.data)) \
+                    if torch.is_tensor(obj) \
+                    # or (hasattr(obj, 'data') and torch.is_tensor(obj.data)) \
                     and obj.is_cuda])
+                    
             print(f"1. {len_cuda_objects()}")
             optimizer_scale.zero_grad()
             batch['input'] = batch['input'].to(device)
