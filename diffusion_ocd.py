@@ -407,6 +407,7 @@ class Model(nn.Module):
             for i_block in range(self.num_res_blocks+1):
                 if (len(hs[-1].shape) == 3 ):
                     hs[-1] = hs[-1].unsqueeze(0)
+                print(h.shape, hs[-1].shape)
                 h = self.up[i_level].block[i_block](
                     torch.cat([h, hs.pop()], dim=1), temb)
                 if len(self.up[i_level].attn) > 0:
